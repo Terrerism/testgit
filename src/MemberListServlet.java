@@ -1,7 +1,4 @@
-import javax.servlet.GenericServlet;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
+import javax.servlet.*;
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -25,11 +22,12 @@ public class MemberListServlet extends GenericServlet {
         ResultSet resultSet = null;
 
         try {
-            DriverManager.registerDriver(new com.mysql.jdbc.Driver());
+            ServletContext servletContext = this.getServletContext();
+            Class.forName(servletContext.getInitParameter("driver"));
             connection = DriverManager.getConnection(
-                    "jdbc:mysql://localhost/studydb",
-                    "study",
-                    "study");
+                    servletContext.getInitParameter("url"),
+                    servletContext.getInitParameter("username"),
+                    servletContext.getInitParameter("password"));
             statement = connection.createStatement();
             resultSet = statement.executeQuery(
                     "select MNO,MNAME,EMAIL,CRE_DATE" +
@@ -39,12 +37,14 @@ public class MemberListServlet extends GenericServlet {
             PrintWriter out = response.getWriter();
             out.println("<html><head><title>회원목록</title></head>");
             out.println("<body><h1>회원목록</h1>");
+            out.println("<p><a href='add'>신규회원</a></p>");
             while(resultSet.next()) {
                 out.println(
                         resultSet.getInt("MNO") + "," +
-                                resultSet.getString("MNAME") + "," +
-                                resultSet.getString("EMAIL") + "," +ㅌ
-                                resultSet.getDate("CRE_DATE") + "<br>");
+                        "<a href='update?no=" + resultSet.getInt("MNO") + "'>" +
+                        resultSet.getString("MNAME") + "</a>," +
+                        resultSet.getString("EMAIL") + "," +
+                        resultSet.getDate("CRE_DATE") + "<br>");
             }
             out.println("</body></html>");
         } catch (Exception e) {
